@@ -13,23 +13,20 @@ class TabManager {
     }
 
     switchTab(tabName) {
-        // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
         });
 
-        // Remove active from all nav items
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
 
-        // Show selected tab
         document.getElementById(`${tabName}-tab`).classList.add('active');
         document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     }
 }
 
-// SIP Calculator Class
+// SIP Calculator
 class SIPCalculator {
     constructor() {
         this.form = document.getElementById('sipForm');
@@ -50,7 +47,6 @@ class SIPCalculator {
             const timePeriod = parseFloat(document.getElementById('timePeriod').value);
             const timeUnit = document.getElementById('timeUnit').value;
 
-            // Validation
             if (!monthlyInvestment || monthlyInvestment < 100) {
                 this.showError('Monthly investment must be at least ₹100');
                 return;
@@ -73,7 +69,6 @@ class SIPCalculator {
             this.resultsDiv.classList.remove('hidden');
         } catch (error) {
             this.showError('An error occurred. Please check your inputs.');
-            console.error(error);
         }
     }
 
@@ -84,8 +79,7 @@ class SIPCalculator {
         if (monthlyRate === 0) {
             maturityAmount = monthlyInvestment * months;
         } else {
-            maturityAmount = monthlyInvestment * 
-                (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
+            maturityAmount = monthlyInvestment * (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
         }
 
         const totalInvestment = monthlyInvestment * months;
@@ -94,151 +88,67 @@ class SIPCalculator {
         return {
             totalInvestment: Math.round(totalInvestment),
             expectedReturns: Math.round(expectedReturns),
-            maturityAmount: Math.round(maturityAmount),
-            monthlyInvestment: monthlyInvestment,
-            months: months,
-            annualReturnRate: annualReturnRate
+            maturityAmount: Math.round(maturityAmount)
         };
     }
 
     displayResults(result, monthlyInvestment, returnRate, months) {
-        document.getElementById('totalInvestment').textContent = 
-            this.formatCurrency(result.totalInvestment);
-        document.getElementById('expectedReturns').textContent = 
-            this.formatCurrency(result.expectedReturns);
-        document.getElementById('maturityAmount').textContent = 
-            this.formatCurrency(result.maturityAmount);
-
-        document.getElementById('breakdownMonthly').textContent = 
-            this.formatCurrency(monthlyInvestment);
+        document.getElementById('totalInvestment').textContent = this.formatCurrency(result.totalInvestment);
+        document.getElementById('expectedReturns').textContent = this.formatCurrency(result.expectedReturns);
+        document.getElementById('maturityAmount').textContent = this.formatCurrency(result.maturityAmount);
+        document.getElementById('breakdownMonthly').textContent = this.formatCurrency(monthlyInvestment);
         document.getElementById('breakdownMonths').textContent = months;
         document.getElementById('breakdownRate').textContent = returnRate + '%';
 
-        this.updateChart(result, months);
+        this.updateChart(result, months, monthlyInvestment, returnRate);
     }
 
-    updateChart(result, months) {
+    updateChart(result, months, monthlyInvestment, returnRate) {
         const ctx = document.getElementById('resultChart').getContext('2d');
-
         const labels = [];
         const investmentData = [];
         const returnsData = [];
         const step = Math.max(1, Math.floor(months / 12));
 
         for (let i = 0; i <= months; i += step) {
-            const calculationResult = this.calculateSIP(
-                result.monthlyInvestment,
-                result.annualReturnRate,
-                i
-            );
-            
+            const calc = this.calculateSIP(monthlyInvestment, returnRate, i);
             const percentage = months > 0 ? Math.round((i / months) * 100) : 0;
             labels.push(percentage + '%');
-            investmentData.push(calculationResult.totalInvestment);
-            returnsData.push(calculationResult.expectedReturns);
+            investmentData.push(calc.totalInvestment);
+            returnsData.push(calc.expectedReturns);
         }
 
-        const finalResult = this.calculateSIP(
-            result.monthlyInvestment,
-            result.annualReturnRate,
-            months
-        );
-        
         labels[labels.length - 1] = months + 'M';
-        investmentData[investmentData.length - 1] = finalResult.totalInvestment;
-        returnsData[returnsData.length - 1] = finalResult.expectedReturns;
 
-        if (this.chart) {
-            this.chart.destroy();
-        }
+        if (this.chart) this.chart.destroy();
 
         this.chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Total Investment',
-                        data: investmentData,
-                        backgroundColor: '#667eea',
-                        borderRadius: 6,
-                        borderSkipped: false
-                    },
-                    {
-                        label: 'Expected Returns',
-                        data: returnsData,
-                        backgroundColor: '#10b981',
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }
+                    { label: 'Total Investment', data: investmentData, backgroundColor: '#667eea', borderRadius: 6 },
+                    { label: 'Expected Returns', data: returnsData, backgroundColor: '#10b981', borderRadius: 6 }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            boxWidth: 12,
-                            padding: 15,
-                            font: {
-                                size: 13,
-                                weight: '600'
-                            },
-                            color: '#6b7280'
-                        }
-                    },
+                    legend: { display: true, position: 'top' },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        titleFont: {
-                            size: 13,
-                            weight: '600'
-                        },
-                        bodyFont: {
-                            size: 12
-                        },
                         callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ₹' + 
-                                    context.parsed.y.toLocaleString('en-IN');
-                            }
+                            label: (context) => context.dataset.label + ': ₹' + context.parsed.y.toLocaleString('en-IN')
                         }
                     }
                 },
                 scales: {
-                    x: {
-                        stacked: false,
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 12
-                            },
-                            color: '#9ca3af'
-                        }
-                    },
                     y: {
                         beginAtZero: true,
-                        stacked: false,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)',
-                            drawBorder: false
-                        },
                         ticks: {
-                            font: {
-                                size: 12
-                            },
-                            color: '#9ca3af',
-                            callback: function(value) {
-                                if (value >= 1000000) {
-                                    return '₹' + (value / 1000000).toFixed(1) + 'M';
-                                } else if (value >= 1000) {
-                                    return '₹' + (value / 1000).toFixed(0) + 'K';
-                                }
+                            callback: (value) => {
+                                if (value >= 1000000) return '₹' + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return '₹' + (value / 1000).toFixed(0) + 'K';
                                 return '₹' + value;
                             }
                         }
@@ -259,27 +169,31 @@ class SIPCalculator {
 
     clearError() {
         this.errorDiv.classList.add('hidden');
-        this.errorDiv.textContent = '';
     }
 }
 
-// Chit Scheme Calculator Class
+// Chit Calculator
 class ChitCalculator {
     constructor() {
         this.form = document.getElementById('chitForm');
         this.totalMonthsInput = document.getElementById('totalMonths');
-        this.bidMonthSelect = document.getElementById('bidMonth');
+        this.bidMonthInput = document.getElementById('bidMonth');
+        this.monthlyTableContainer = document.getElementById('monthlyTableContainer');
+        this.monthlyTableBody = document.getElementById('monthlyTableBody');
+        this.ratesGroupContainer = document.getElementById('ratesGroupContainer');
+        this.lumpSumRateContainer = document.getElementById('lumpSumRateContainer');
+        this.interestRateContainer = document.getElementById('interestRateContainer');
+        this.chitCalculateBtn = document.getElementById('chitCalculateBtn');
         this.resultsDiv = document.getElementById('chitResults');
         this.errorDiv = document.getElementById('chitError');
-        this.monthlyDetailsContainer = document.getElementById('monthlyDetailsContainer');
-        this.monthlyDetailsGrid = document.getElementById('monthlyDetailsGrid');
         this.monthlyData = {};
 
-        this.totalMonthsInput.addEventListener('change', () => this.generateMonthlyInputs());
+        this.totalMonthsInput.addEventListener('change', () => this.generateMonthlyTable());
+        this.bidMonthInput.addEventListener('change', () => this.validateBidMonth());
         this.form.addEventListener('submit', (e) => this.handleCalculate(e));
     }
 
-    generateMonthlyInputs() {
+    generateMonthlyTable() {
         this.clearError();
         const totalMonths = parseInt(this.totalMonthsInput.value);
 
@@ -288,39 +202,26 @@ class ChitCalculator {
             return;
         }
 
-        this.monthlyDetailsGrid.innerHTML = '';
+        this.monthlyTableBody.innerHTML = '';
         this.monthlyData = {};
-        this.bidMonthSelect.innerHTML = '<option value="">-- Select month --</option>';
+        this.bidMonthInput.value = '';
+        this.bidMonthInput.max = totalMonths;
+        this.lumpSumRateContainer.classList.add('hidden');
+        this.interestRateContainer.classList.add('hidden');
+        this.chitCalculateBtn.classList.add('hidden');
 
         for (let month = 1; month <= totalMonths; month++) {
-            // Create card for each month
-            const card = document.createElement('div');
-            card.className = 'month-detail-card';
-            card.innerHTML = `
-                <h4>Month ${month}</h4>
-                <div>
-                    <label class="month-detail-label">Monthly Premium (₹)</label>
-                    <input type="number" class="monthly-premium" data-month="${month}" 
-                           placeholder="8000" min="0" step="100" value="8000">
-                </div>
-                <div>
-                    <label class="month-detail-label">Bid Amount (₹)</label>
-                    <input type="number" class="bid-amount" data-month="${month}" 
-                           placeholder="180000" min="0" step="1000" value="${month === 10 ? '180000' : '0'}">
-                </div>
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${month}</td>
+                <td><input type="number" class="monthly-premium" data-month="${month}" placeholder="8000" min="0" step="100" value="8000"></td>
+                <td><input type="number" class="bid-amount" data-month="${month}" placeholder="180000" min="0" step="1000" value="0"></td>
             `;
-            this.monthlyDetailsGrid.appendChild(card);
-
-            // Add to bid month dropdown
-            const option = document.createElement('option');
-            option.value = month;
-            option.textContent = `Month ${month}`;
-            this.bidMonthSelect.appendChild(option);
+            this.monthlyTableBody.appendChild(row);
         }
 
-        this.monthlyDetailsContainer.classList.remove('hidden');
+        this.monthlyTableContainer.classList.remove('hidden');
 
-        // Attach listeners to inputs
         document.querySelectorAll('.monthly-premium, .bid-amount').forEach(input => {
             input.addEventListener('change', () => this.storeMonthlyData());
         });
@@ -338,12 +239,47 @@ class ChitCalculator {
         });
     }
 
+    validateBidMonth() {
+        this.clearError();
+        const bidMonth = parseInt(this.bidMonthInput.value);
+        const totalMonths = parseInt(this.totalMonthsInput.value);
+
+        if (!bidMonth) {
+            this.lumpSumRateContainer.classList.add('hidden');
+            this.interestRateContainer.classList.add('hidden');
+            this.chitCalculateBtn.classList.add('hidden');
+            return;
+        }
+
+        if (bidMonth < 1 || bidMonth > totalMonths) {
+            this.showError(`Bid month must be between 1 and ${totalMonths}`);
+            this.bidMonthInput.value = '';
+            this.lumpSumRateContainer.classList.add('hidden');
+            this.interestRateContainer.classList.add('hidden');
+            this.chitCalculateBtn.classList.add('hidden');
+            return;
+        }
+
+        const bidAmount = this.monthlyData[bidMonth]?.bidAmount;
+        if (!bidAmount || bidAmount === 0) {
+            this.showError(`Please enter a bid amount for month ${bidMonth}`);
+            this.lumpSumRateContainer.classList.add('hidden');
+            this.interestRateContainer.classList.add('hidden');
+            this.chitCalculateBtn.classList.add('hidden');
+            return;
+        }
+
+        this.lumpSumRateContainer.classList.remove('hidden');
+        this.interestRateContainer.classList.remove('hidden');
+        this.chitCalculateBtn.classList.remove('hidden');
+    }
+
     handleCalculate(e) {
         e.preventDefault();
         this.clearError();
 
         try {
-            const bidMonth = parseInt(this.bidMonthSelect.value);
+            const bidMonth = parseInt(this.bidMonthInput.value);
             const rdReturnRate = parseFloat(document.getElementById('rdReturnRate').value);
             const lumpSumRate = parseFloat(document.getElementById('lumpSumRate').value);
             const totalMonths = parseInt(this.totalMonthsInput.value);
@@ -372,12 +308,10 @@ class ChitCalculator {
             this.displayResults(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount);
         } catch (error) {
             this.showError('An error occurred. Please check your inputs.');
-            console.error(error);
         }
     }
 
     displayResults(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount) {
-        // Update summary
         document.getElementById('summaryBidMonth').textContent = `Month ${bidMonth}`;
         document.getElementById('summaryBidAmount').textContent = this.formatCurrency(bidAmount);
 
@@ -387,9 +321,7 @@ class ChitCalculator {
         }
         document.getElementById('summaryTotalPayments').textContent = this.formatCurrency(totalPayments);
 
-        // Generate table
         this.generateComparisonTable(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount);
-
         document.getElementById('tableRateText').textContent = lumpSumRate + '%';
         document.getElementById('tableSipRateText').textContent = rdReturnRate + '%';
 
@@ -403,19 +335,13 @@ class ChitCalculator {
         const monthlyRdRate = rdReturnRate / 12 / 100;
         const monthlyLsRate = lumpSumRate / 12 / 100;
 
-        let lumpSumValue = bidAmount;
-        let sipAccumulated = 0;
-
-        // Show rows for months after bid
         for (let month = bidMonth + 1; month <= totalMonths; month++) {
             const monthsPassed = month - bidMonth;
             const monthlyPremium = this.monthlyData[month].premium;
 
-            // Calculate lumpsum value
-            lumpSumValue = bidAmount * Math.pow(1 + monthlyLsRate, monthsPassed);
+            const lumpSumValue = bidAmount * Math.pow(1 + monthlyLsRate, monthsPassed);
 
-            // Calculate accumulated SIP
-            sipAccumulated = 0;
+            let sipAccumulated = 0;
             for (let m = bidMonth + 1; m <= month; m++) {
                 const premiumToAdd = this.monthlyData[m].premium;
                 const monthsToGrow = month - m;
@@ -448,11 +374,9 @@ class ChitCalculator {
 
     clearError() {
         this.errorDiv.classList.add('hidden');
-        this.errorDiv.textContent = '';
     }
 }
 
-// Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     new TabManager();
     new SIPCalculator();

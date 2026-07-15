@@ -21,7 +21,6 @@ body {
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 20px;
-    min-height: 100vh;
 }
 
 /* Sidebar Styles */
@@ -128,15 +127,10 @@ body {
 
 .form {
     padding: 40px 30px;
-    border-bottom: 1px solid #e5e7eb;
 }
 
 .form-group {
     margin-bottom: 25px;
-}
-
-.form-group:last-of-type {
-    margin-bottom: 30px;
 }
 
 .form-group label {
@@ -148,7 +142,6 @@ body {
 }
 
 .form-group input[type="number"],
-.form-group input[type="text"],
 .form-group select {
     width: 100%;
     padding: 12px 14px;
@@ -160,7 +153,6 @@ body {
 }
 
 .form-group input[type="number"]:focus,
-.form-group input[type="text"]:focus,
 .form-group select:focus {
     outline: none;
     border-color: #667eea;
@@ -194,23 +186,6 @@ body {
     margin-bottom: 8px;
 }
 
-.time-input input,
-.time-unit select {
-    padding: 12px 14px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    font-family: inherit;
-}
-
-.time-input input:focus,
-.time-unit select:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
 .calculate-btn {
     width: 100%;
     padding: 14px 24px;
@@ -234,8 +209,12 @@ body {
     transform: translateY(0);
 }
 
-/* Monthly Details for Chit */
-.monthly-details-container {
+.calculate-btn.hidden {
+    display: none;
+}
+
+/* Monthly Table */
+.monthly-table-container {
     margin-bottom: 30px;
     padding: 20px;
     background: #f9fafb;
@@ -243,57 +222,95 @@ body {
     border-left: 4px solid #667eea;
 }
 
-.monthly-details-container.hidden {
+.monthly-table-container.hidden {
     display: none;
 }
 
-.monthly-details-container h3 {
+.monthly-table-container h3 {
     font-size: 16px;
     font-weight: 600;
     color: #1f2937;
     margin-bottom: 15px;
 }
 
-.monthly-details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+.table-container {
+    overflow-x: auto;
 }
 
-.month-detail-card {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-.month-detail-card h4 {
-    font-size: 13px;
-    font-weight: 600;
-    color: #6b7280;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
-
-.month-detail-card input {
+.monthly-details-table,
+.comparison-table {
     width: 100%;
-    padding: 10px;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.monthly-details-table thead,
+.comparison-table thead {
+    background: #f3f4f6;
+}
+
+.monthly-details-table th,
+.comparison-table th {
+    padding: 15px 12px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1f2937;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.monthly-details-table td,
+.comparison-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    color: #4f566b;
+}
+
+.monthly-details-table input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     font-size: 14px;
-    margin-bottom: 8px;
+    font-family: inherit;
 }
 
-.month-detail-card input:focus {
+.monthly-details-table input[type="number"]:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.month-detail-label {
-    font-size: 12px;
-    color: #9ca3af;
-    margin-top: 4px;
+.comparison-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.comparison-table td:nth-child(2),
+.comparison-table td:nth-child(3),
+.comparison-table td:nth-child(4),
+.comparison-table td:nth-child(5) {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.positive {
+    color: #10b981;
+}
+
+.negative {
+    color: #ef4444;
+}
+
+/* Hidden Elements */
+.hidden {
+    display: none !important;
 }
 
 /* Results */
@@ -355,7 +372,6 @@ body {
     color: #667eea;
 }
 
-/* Chit Results */
 .chit-summary {
     margin-bottom: 30px;
     padding: 20px;
@@ -384,86 +400,16 @@ body {
     border: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
-    align-items: center;
 }
 
 .summary-item span:first-child {
-    font-size: 13px;
     font-weight: 600;
     color: #6b7280;
 }
 
 .summary-item span:last-child {
-    font-size: 16px;
     font-weight: 700;
     color: #1f2937;
-}
-
-/* Table Styles */
-.table-container {
-    overflow-x: auto;
-    margin-bottom: 20px;
-}
-
-.comparison-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.comparison-table thead {
-    background: #f3f4f6;
-}
-
-.comparison-table th {
-    padding: 15px 12px;
-    text-align: left;
-    font-size: 13px;
-    font-weight: 700;
-    color: #1f2937;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #e5e7eb;
-}
-
-.comparison-table td {
-    padding: 15px 12px;
-    border-bottom: 1px solid #e5e7eb;
-    font-size: 14px;
-    color: #4f566b;
-}
-
-.comparison-table tbody tr:hover {
-    background: #f9fafb;
-}
-
-.comparison-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.comparison-table td:first-child {
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.comparison-table td:nth-child(2),
-.comparison-table td:nth-child(3),
-.comparison-table td:nth-child(4),
-.comparison-table td:nth-child(5) {
-    text-align: right;
-    font-family: 'Courier New', monospace;
-    font-weight: 600;
-}
-
-.positive {
-    color: #10b981;
-}
-
-.negative {
-    color: #ef4444;
 }
 
 .chart-container {
@@ -493,7 +439,6 @@ body {
 .breakdown-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     padding: 12px 0;
     border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
@@ -526,7 +471,7 @@ body {
     display: none;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 1024px) {
     .main-wrapper {
         grid-template-columns: 1fr;
@@ -539,16 +484,10 @@ body {
 
     .sidebar-nav {
         flex-direction: row;
-        gap: 10px;
     }
 
     .nav-item {
         flex: 1;
-        justify-content: center;
-    }
-
-    .monthly-details-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     }
 }
 
@@ -557,10 +496,6 @@ body {
         padding: 30px 20px;
     }
 
-    .header h1 {
-        font-size: 24px;
-    }
-
     .form {
         padding: 25px 20px;
     }
@@ -569,89 +504,22 @@ body {
         padding: 25px 20px;
     }
 
-    .results-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .time-period-group {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
-
-    .result-value {
-        font-size: 24px;
-    }
-
-    .monthly-details-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    }
-
+    .monthly-details-table,
     .comparison-table {
         font-size: 12px;
-    }
-
-    .comparison-table th,
-    .comparison-table td {
-        padding: 10px 8px;
     }
 }
 
 @media (max-width: 480px) {
-    .container {
-        padding: 0;
-    }
-
-    .calculator-wrapper {
-        border-radius: 8px;
+    .main-wrapper {
+        grid-template-columns: 1fr;
     }
 
     .header {
         padding: 20px 15px;
     }
 
-    .header h1 {
-        font-size: 20px;
-    }
-
     .form {
         padding: 20px 15px;
-    }
-
-    .results {
-        padding: 20px 15px;
-    }
-
-    .sidebar {
-        padding: 15px;
-    }
-
-    .sidebar-nav {
-        gap: 8px;
-    }
-
-    .nav-item {
-        padding: 10px 12px;
-        font-size: 13px;
-    }
-
-    .monthly-details-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .time-period-group {
-        gap: 10px;
-    }
-
-    .comparison-table {
-        font-size: 11px;
-    }
-
-    .comparison-table th,
-    .comparison-table td {
-        padding: 8px 6px;
     }
 }

@@ -1,9 +1,40 @@
+// Tab Navigation
+class TabManager {
+    constructor() {
+        this.setupTabListeners();
+    }
+
+    setupTabListeners() {
+        document.querySelectorAll('.nav-item').forEach(button => {
+            button.addEventListener('click', (e) => {
+                this.switchTab(button.dataset.tab);
+            });
+        });
+    }
+
+    switchTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Remove active from all nav items
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Show selected tab
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    }
+}
+
 // SIP Calculator Class
 class SIPCalculator {
     constructor() {
         this.form = document.getElementById('sipForm');
-        this.resultsDiv = document.getElementById('results');
-        this.errorDiv = document.getElementById('error');
+        this.resultsDiv = document.getElementById('sipResults');
+        this.errorDiv = document.getElementById('sipError');
         this.chart = null;
 
         this.form.addEventListener('submit', (e) => this.handleCalculate(e));
@@ -35,13 +66,9 @@ class SIPCalculator {
                 return;
             }
 
-            // Convert to months
             const months = timeUnit === 'years' ? timePeriod * 12 : timePeriod;
-
-            // Calculate SIP
             const result = this.calculateSIP(monthlyInvestment, returnRate, months);
 
-            // Display results
             this.displayResults(result, monthlyInvestment, returnRate, months);
             this.resultsDiv.classList.remove('hidden');
         } catch (error) {
@@ -51,10 +78,7 @@ class SIPCalculator {
     }
 
     calculateSIP(monthlyInvestment, annualReturnRate, months) {
-        // Convert annual rate to monthly rate
         const monthlyRate = annualReturnRate / 12 / 100;
-
-        // SIP Formula: FV = P * [((1 + r)^n - 1) / r] * (1 + r)
         let maturityAmount;
 
         if (monthlyRate === 0) {
@@ -114,7 +138,6 @@ class SIPCalculator {
             returnsData.push(calculationResult.expectedReturns);
         }
 
-        // Ensure final value is included
         const finalResult = this.calculateSIP(
             result.monthlyInvestment,
             result.annualReturnRate,
@@ -240,7 +263,198 @@ class SIPCalculator {
     }
 }
 
-// Initialize calculator when DOM is ready
+// Chit Scheme Calculator Class
+class ChitCalculator {
+    constructor() {
+        this.form = document.getElementById('chitForm');
+        this.totalMonthsInput = document.getElementById('totalMonths');
+        this.bidMonthSelect = document.getElementById('bidMonth');
+        this.resultsDiv = document.getElementById('chitResults');
+        this.errorDiv = document.getElementById('chitError');
+        this.monthlyDetailsContainer = document.getElementById('monthlyDetailsContainer');
+        this.monthlyDetailsGrid = document.getElementById('monthlyDetailsGrid');
+        this.monthlyData = {};
+
+        this.totalMonthsInput.addEventListener('change', () => this.generateMonthlyInputs());
+        this.form.addEventListener('submit', (e) => this.handleCalculate(e));
+    }
+
+    generateMonthlyInputs() {
+        this.clearError();
+        const totalMonths = parseInt(this.totalMonthsInput.value);
+
+        if (!totalMonths || totalMonths < 1) {
+            this.showError('Please enter a valid number of months');
+            return;
+        }
+
+        this.monthlyDetailsGrid.innerHTML = '';
+        this.monthlyData = {};
+        this.bidMonthSelect.innerHTML = '<option value="">-- Select month --</option>';
+
+        for (let month = 1; month <= totalMonths; month++) {
+            // Create card for each month
+            const card = document.createElement('div');
+            card.className = 'month-detail-card';
+            card.innerHTML = `
+                <h4>Month ${month}</h4>
+                <div>
+                    <label class="month-detail-label">Monthly Premium (₹)</label>
+                    <input type="number" class="monthly-premium" data-month="${month}" 
+                           placeholder="8000" min="0" step="100" value="8000">
+                </div>
+                <div>
+                    <label class="month-detail-label">Bid Amount (₹)</label>
+                    <input type="number" class="bid-amount" data-month="${month}" 
+                           placeholder="180000" min="0" step="1000" value="${month === 10 ? '180000' : '0'}">
+                </div>
+            `;
+            this.monthlyDetailsGrid.appendChild(card);
+
+            // Add to bid month dropdown
+            const option = document.createElement('option');
+            option.value = month;
+            option.textContent = `Month ${month}`;
+            this.bidMonthSelect.appendChild(option);
+        }
+
+        this.monthlyDetailsContainer.classList.remove('hidden');
+
+        // Attach listeners to inputs
+        document.querySelectorAll('.monthly-premium, .bid-amount').forEach(input => {
+            input.addEventListener('change', () => this.storeMonthlyData());
+        });
+
+        this.storeMonthlyData();
+    }
+
+    storeMonthlyData() {
+        this.monthlyData = {};
+        document.querySelectorAll('.monthly-premium').forEach(input => {
+            const month = parseInt(input.dataset.month);
+            const premium = parseFloat(input.value) || 0;
+            const bidAmount = parseFloat(document.querySelector(`.bid-amount[data-month="${month}"]`).value) || 0;
+            this.monthlyData[month] = { premium, bidAmount };
+        });
+    }
+
+    handleCalculate(e) {
+        e.preventDefault();
+        this.clearError();
+
+        try {
+            const bidMonth = parseInt(this.bidMonthSelect.value);
+            const rdReturnRate = parseFloat(document.getElementById('rdReturnRate').value);
+            const lumpSumRate = parseFloat(document.getElementById('lumpSumRate').value);
+            const totalMonths = parseInt(this.totalMonthsInput.value);
+
+            if (!bidMonth) {
+                this.showError('Please select a bid month');
+                return;
+            }
+
+            if (!rdReturnRate || rdReturnRate < 0 || rdReturnRate > 100) {
+                this.showError('RD/SIP return rate must be between 0% and 100%');
+                return;
+            }
+
+            if (!lumpSumRate || lumpSumRate < 0 || lumpSumRate > 100) {
+                this.showError('Lumpsum rate must be between 0% and 100%');
+                return;
+            }
+
+            const bidAmount = this.monthlyData[bidMonth].bidAmount;
+            if (!bidAmount) {
+                this.showError(`Please enter bid amount for month ${bidMonth}`);
+                return;
+            }
+
+            this.displayResults(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount);
+        } catch (error) {
+            this.showError('An error occurred. Please check your inputs.');
+            console.error(error);
+        }
+    }
+
+    displayResults(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount) {
+        // Update summary
+        document.getElementById('summaryBidMonth').textContent = `Month ${bidMonth}`;
+        document.getElementById('summaryBidAmount').textContent = this.formatCurrency(bidAmount);
+
+        let totalPayments = 0;
+        for (let month = 1; month <= totalMonths; month++) {
+            totalPayments += this.monthlyData[month].premium;
+        }
+        document.getElementById('summaryTotalPayments').textContent = this.formatCurrency(totalPayments);
+
+        // Generate table
+        this.generateComparisonTable(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount);
+
+        document.getElementById('tableRateText').textContent = lumpSumRate + '%';
+        document.getElementById('tableSipRateText').textContent = rdReturnRate + '%';
+
+        this.resultsDiv.classList.remove('hidden');
+    }
+
+    generateComparisonTable(bidMonth, rdReturnRate, lumpSumRate, totalMonths, bidAmount) {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        const monthlyRdRate = rdReturnRate / 12 / 100;
+        const monthlyLsRate = lumpSumRate / 12 / 100;
+
+        let lumpSumValue = bidAmount;
+        let sipAccumulated = 0;
+
+        // Show rows for months after bid
+        for (let month = bidMonth + 1; month <= totalMonths; month++) {
+            const monthsPassed = month - bidMonth;
+            const monthlyPremium = this.monthlyData[month].premium;
+
+            // Calculate lumpsum value
+            lumpSumValue = bidAmount * Math.pow(1 + monthlyLsRate, monthsPassed);
+
+            // Calculate accumulated SIP
+            sipAccumulated = 0;
+            for (let m = bidMonth + 1; m <= month; m++) {
+                const premiumToAdd = this.monthlyData[m].premium;
+                const monthsToGrow = month - m;
+                sipAccumulated += premiumToAdd * Math.pow(1 + monthlyRdRate, monthsToGrow);
+            }
+
+            const netGainLoss = lumpSumValue - sipAccumulated;
+            const gainLossClass = netGainLoss >= 0 ? 'positive' : 'negative';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>Month ${month}</td>
+                <td>${this.formatCurrency(monthlyPremium)}</td>
+                <td>${this.formatCurrency(Math.round(lumpSumValue))}</td>
+                <td>${this.formatCurrency(Math.round(sipAccumulated))}</td>
+                <td class="${gainLossClass}">${this.formatCurrency(Math.round(netGainLoss))}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+    }
+
+    formatCurrency(value) {
+        return '₹' + Math.round(value).toLocaleString('en-IN');
+    }
+
+    showError(message) {
+        this.errorDiv.textContent = message;
+        this.errorDiv.classList.remove('hidden');
+    }
+
+    clearError() {
+        this.errorDiv.classList.add('hidden');
+        this.errorDiv.textContent = '';
+    }
+}
+
+// Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    new TabManager();
     new SIPCalculator();
+    new ChitCalculator();
 });

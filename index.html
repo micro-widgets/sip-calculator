@@ -157,19 +157,36 @@
                                 >
                             </div>
 
-                            <div id="monthlyDetailsContainer" class="monthly-details-container hidden">
+                            <div id="monthlyTableContainer" class="monthly-table-container hidden">
                                 <h3>Month-wise Details</h3>
-                                <div id="monthlyDetailsGrid" class="monthly-details-grid"></div>
+                                <div class="table-container">
+                                    <table id="monthlyDetailsTable" class="monthly-details-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Month</th>
+                                                <th>Monthly Premium (₹)</th>
+                                                <th>Bid Amount (₹)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="monthlyTableBody">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="bidMonth">Select Month to Take Bid</label>
-                                <select id="bidMonth" required>
-                                    <option value="">-- Select month --</option>
-                                </select>
+                            <div class="form-group" id="ratesGroupContainer">
+                                <label for="bidMonth">Month to Take Bid (Enter Month Number)</label>
+                                <input 
+                                    type="number" 
+                                    id="bidMonth" 
+                                    placeholder="e.g., 10" 
+                                    min="1" 
+                                    step="1"
+                                >
+                                <span class="input-hint">Enter a month between 1 and total months</span>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group hidden" id="lumpSumRateContainer">
                                 <label for="rdReturnRate">Expected RD/SIP Return Rate (%)</label>
                                 <input 
                                     type="number" 
@@ -179,12 +196,11 @@
                                     max="100"
                                     step="0.1"
                                     value="8"
-                                    required
                                 >
                                 <span class="input-hint">Annual return on monthly contributions</span>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group hidden" id="interestRateContainer">
                                 <label for="lumpSumRate">Interest Rate on Lumpsum/Bid Amount (%)</label>
                                 <input 
                                     type="number" 
@@ -194,12 +210,11 @@
                                     max="100"
                                     step="0.1"
                                     value="12"
-                                    required
                                 >
                                 <span class="input-hint">Annual interest rate on bid amount</span>
                             </div>
 
-                            <button type="submit" class="calculate-btn">Calculate Returns</button>
+                            <button type="submit" class="calculate-btn hidden" id="chitCalculateBtn">Calculate Returns</button>
                         </form>
 
                         <div id="chitResults" class="results hidden">

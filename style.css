@@ -1,0 +1,357 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+}
+
+.calculator-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.header p {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.form {
+    padding: 40px 30px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group:last-of-type {
+    margin-bottom: 30px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.form-group input[type="number"],
+.form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-group input[type="number"]:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-hint {
+    display: block;
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 6px;
+}
+
+.time-period-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.time-input,
+.time-unit {
+    display: flex;
+    flex-direction: column;
+}
+
+.time-input label,
+.time-unit label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.time-input input,
+.time-unit select {
+    padding: 12px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.time-input input:focus,
+.time-unit select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.calculate-btn {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.calculate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.calculate-btn:active {
+    transform: translateY(0);
+}
+
+.results {
+    padding: 40px 30px;
+    animation: slideIn 0.5s ease;
+}
+
+.results.hidden {
+    display: none;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 35px;
+}
+
+.result-card {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    text-align: center;
+}
+
+.result-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.result-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.result-value.gains {
+    color: #10b981;
+}
+
+.result-value.total {
+    color: #667eea;
+}
+
+.chart-container {
+    margin-bottom: 35px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.chart-container canvas {
+    max-height: 300px;
+}
+
+.breakdown {
+    background: #f9fafb;
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.breakdown h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 15px;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.breakdown-item span:first-child {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.breakdown-item span:last-child {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.error-message {
+    padding: 15px 20px;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 8px;
+    margin: 20px 30px;
+    border-left: 4px solid #dc2626;
+}
+
+.error-message.hidden {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .header {
+        padding: 30px 20px;
+    }
+
+    .header h1 {
+        font-size: 24px;
+    }
+
+    .header p {
+        font-size: 14px;
+    }
+
+    .form {
+        padding: 25px 20px;
+    }
+
+    .results {
+        padding: 25px 20px;
+    }
+
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .time-period-group {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .result-value {
+        font-size: 24px;
+    }
+
+    .breakdown {
+        padding: 15px;
+    }
+
+    .breakdown h3 {
+        font-size: 14px;
+    }
+
+    .breakdown-item {
+        font-size: 13px;
+        padding: 10px 0;
+    }
+
+    body {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calculator-wrapper {
+        border-radius: 8px;
+    }
+
+    .header {
+        padding: 20px 15px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .form {
+        padding: 20px 15px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .results {
+        padding: 20px 15px;
+    }
+
+    .result-value {
+        font-size: 20px;
+    }
+
+    .time-period-group {
+        gap: 10px;
+    }
+}

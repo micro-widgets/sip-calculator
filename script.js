@@ -1,37 +1,246 @@
-function calculateSIP() {
-    // 1. Extract inputs from DOM
-    const P = parseFloat(document.getElementById('monthlyInstalment').value);
-    const annualRate = parseFloat(document.getElementById('expectedReturn').value);
-    const timeValue = parseFloat(document.getElementById('timePeriod').value);
-    const timeUnit = document.getElementById('timeUnit').value;
+// SIP Calculator Class
+class SIPCalculator {
+    constructor() {
+        this.form = document.getElementById('sipForm');
+        this.resultsDiv = document.getElementById('results');
+        this.errorDiv = document.getElementById('error');
+        this.chart = null;
 
-    // SRE Guard rails
-    if (isNaN(P) || isNaN(annualRate) || isNaN(timeValue) || P <= 0 || annualRate <= 0 || timeValue <= 0) {
-        alert("Please enter valid positive numbers in all fields.");
-        return;
+        this.form.addEventListener('submit', (e) => this.handleCalculate(e));
     }
 
-    // 2. Determine total months dynamically based on the dropdown unit
-    let n;
-    if (timeUnit === 'years') {
-        n = timeValue * 12; // Convert years to months
-    } else {
-        n = timeValue;      // Already in months
+    handleCalculate(e) {
+        e.preventDefault();
+        this.clearError();
+
+        try {
+            const monthlyInvestment = parseFloat(document.getElementById('monthlyInvestment').value);
+            const returnRate = parseFloat(document.getElementById('returnRate').value);
+            const timePeriod = parseFloat(document.getElementById('timePeriod').value);
+            const timeUnit = document.getElementById('timeUnit').value;
+
+            // Validation
+            if (!monthlyInvestment || monthlyInvestment < 100) {
+                this.showError('Monthly investment must be at least ₹100');
+                return;
+            }
+
+            if (!returnRate || returnRate < 0 || returnRate > 100) {
+                this.showError('Return rate must be between 0% and 100%');
+                return;
+            }
+
+            if (!timePeriod || timePeriod < 1) {
+                this.showError('Time period must be at least 1');
+                return;
+            }
+
+            // Convert to months
+            const months = timeUnit === 'years' ? timePeriod * 12 : timePeriod;
+
+            // Calculate SIP
+            const result = this.calculateSIP(monthlyInvestment, returnRate, months);
+
+            // Display results
+            this.displayResults(result, monthlyInvestment, returnRate, months);
+            this.resultsDiv.classList.remove('hidden');
+        } catch (error) {
+            this.showError('An error occurred. Please check your inputs.');
+            console.error(error);
+        }
     }
 
-    const i = (annualRate / 12) / 100; // Monthly interest rate
+    calculateSIP(monthlyInvestment, annualReturnRate, months) {
+        // Convert annual rate to monthly rate
+        const monthlyRate = annualReturnRate / 12 / 100;
 
-    // 3. Execute the compound annuity math
-    const futureValue = P * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
-    const totalInvested = P * n;
-    const wealthGained = futureValue - totalInvested;
+        // SIP Formula: FV = P * [((1 + r)^n - 1) / r] * (1 + r)
+        let maturityAmount;
 
-    // 4. Update UI with formatted values
-    const indianCurrencyFormat = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+        if (monthlyRate === 0) {
+            maturityAmount = monthlyInvestment * months;
+        } else {
+            maturityAmount = monthlyInvestment * 
+                (((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate));
+        }
 
-    document.getElementById('totalInvested').innerText = indianCurrencyFormat.format(totalInvested);
-    document.getElementById('wealthGained').innerText = indianCurrencyFormat.format(wealthGained);
-    document.getElementById('futureValue').innerText = indianCurrencyFormat.format(futureValue);
+        const totalInvestment = monthlyInvestment * months;
+        const expectedReturns = maturityAmount - totalInvestment;
+
+        return {
+            totalInvestment: Math.round(totalInvestment),
+            expectedReturns: Math.round(expectedReturns),
+            maturityAmount: Math.round(maturityAmount),
+            monthlyInvestment: monthlyInvestment,
+            months: months,
+            annualReturnRate: annualReturnRate
+        };
+    }
+
+    displayResults(result, monthlyInvestment, returnRate, months) {
+        document.getElementById('totalInvestment').textContent = 
+            this.formatCurrency(result.totalInvestment);
+        document.getElementById('expectedReturns').textContent = 
+            this.formatCurrency(result.expectedReturns);
+        document.getElementById('maturityAmount').textContent = 
+            this.formatCurrency(result.maturityAmount);
+
+        document.getElementById('breakdownMonthly').textContent = 
+            this.formatCurrency(monthlyInvestment);
+        document.getElementById('breakdownMonths').textContent = months;
+        document.getElementById('breakdownRate').textContent = returnRate + '%';
+
+        this.updateChart(result, months);
+    }
+
+    updateChart(result, months) {
+        const ctx = document.getElementById('resultChart').getContext('2d');
+
+        const labels = [];
+        const investmentData = [];
+        const returnsData = [];
+        const step = Math.max(1, Math.floor(months / 12));
+
+        for (let i = 0; i <= months; i += step) {
+            const calculationResult = this.calculateSIP(
+                result.monthlyInvestment,
+                result.annualReturnRate,
+                i
+            );
+            
+            const percentage = months > 0 ? Math.round((i / months) * 100) : 0;
+            labels.push(percentage + '%');
+            investmentData.push(calculationResult.totalInvestment);
+            returnsData.push(calculationResult.expectedReturns);
+        }
+
+        // Ensure final value is included
+        const finalResult = this.calculateSIP(
+            result.monthlyInvestment,
+            result.annualReturnRate,
+            months
+        );
+        
+        labels[labels.length - 1] = months + 'M';
+        investmentData[investmentData.length - 1] = finalResult.totalInvestment;
+        returnsData[returnsData.length - 1] = finalResult.expectedReturns;
+
+        if (this.chart) {
+            this.chart.destroy();
+        }
+
+        this.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total Investment',
+                        data: investmentData,
+                        backgroundColor: '#667eea',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    },
+                    {
+                        label: 'Expected Returns',
+                        data: returnsData,
+                        backgroundColor: '#10b981',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15,
+                            font: {
+                                size: 13,
+                                weight: '600'
+                            },
+                            color: '#6b7280'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 13,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₹' + 
+                                    context.parsed.y.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: false,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#9ca3af'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        stacked: false,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#9ca3af',
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return '₹' + (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    return '₹' + (value / 1000).toFixed(0) + 'K';
+                                }
+                                return '₹' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    formatCurrency(value) {
+        return '₹' + Math.round(value).toLocaleString('en-IN');
+    }
+
+    showError(message) {
+        this.errorDiv.textContent = message;
+        this.errorDiv.classList.remove('hidden');
+    }
+
+    clearError() {
+        this.errorDiv.classList.add('hidden');
+        this.errorDiv.textContent = '';
+    }
 }
 
-window.onload = calculateSIP;
+// Initialize calculator when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new SIPCalculator();
+});
